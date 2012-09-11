@@ -35,6 +35,7 @@
 #include <linux/oom.h>
 #include <linux/sched.h>
 #include <linux/notifier.h>
+#include <linux/compaction.h>
 #include <linux/memory.h>
 #include <linux/memory_hotplug.h>
 
@@ -57,6 +58,20 @@ static int lowmem_minfree_size = 4;
 static unsigned int offlining;
 static struct task_struct *lowmem_deathpending;
 static unsigned long lowmem_deathpending_timeout;
+static uint32_t lowmem_check_filepages = 0;
+static unsigned long lowmem_fork_boost_timeout;
+/*
+ * discount = 1 -> 1/2^1 = 50% Off
+ * discount = 2 -> 1/2^2 = 25% Off
+ * discount = 3 -> 1/2^3 = 12.5% Off
+ * discount = 4 -> 1/2^4 = 6.25% Off
+ */
+static unsigned int discount = 2;
+static unsigned long boost_duration = (HZ << 1);
+
+static uint32_t lowmem_fork_boost = 1;
+ 
+extern int compact_nodes();
 
 #define lowmem_print(level, x...)			\
 	do {						\
@@ -220,6 +235,8 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	lowmem_print(4, "lowmem_shrink %lu, %x, return %d\n",
 		     sc->nr_to_scan, sc->gfp_mask, rem);
 	read_unlock(&tasklist_lock);
+    if (selected)
+        compact_nodes();
 	return rem;
 }
 
