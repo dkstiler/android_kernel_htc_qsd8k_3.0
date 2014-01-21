@@ -3098,9 +3098,10 @@ static irqreturn_t udc_irq(void)
 			USB_INFO("reset\n");
 			isr_statistics.uri++;
 			isr_reset_handler(udc);
-
+#if defined(CONFIG_MACH_HTC) && defined(CONFIG_USB_MSM_OTG)
 			if (udc->transceiver)
-				udc->transceiver->notify_charger(CONNECT_TYPE_USB);
+				udc->transceiver->notify_usb_attached();
+#endif
 		}
 		if (USBi_PCI & intr) {
 			isr_statistics.pci++;
