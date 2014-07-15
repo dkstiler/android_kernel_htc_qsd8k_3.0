@@ -249,6 +249,7 @@ struct mdp_device {
 	uint32_t width;		/*panel width*/
 	uint32_t height;	/*panel height*/
 };
+
 struct msmfb_info {
 	struct fb_info *fb;
 	struct msm_panel_data *panel;
