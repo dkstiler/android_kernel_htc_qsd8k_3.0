@@ -171,7 +171,7 @@ static char *msm_pm_mode_attr_labels[MSM_PM_MODE_ATTR_NR] = {
 };
 
 static char *msm_pm_sleep_mode_labels[MSM_PM_SLEEP_MODE_NR] = {
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_SUSPEND] = " ",
+	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_SUSPEND] = "power_collapse_suspend",
 	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE] = "power_collapse",
 	[MSM_PM_SLEEP_MODE_APPS_SLEEP] = "apps_sleep",
 	[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT] =
@@ -658,7 +658,7 @@ static int msm_pm_poll_state(int nr_grps, struct msm_pm_polled_group *grps)
 			if (all_set && all_clear && (any_set || any_clear))
 				return k;
 		}
-		udelay(1);
+		udelay(50);
 	}
 
 	printk(KERN_ERR "%s failed:\n", __func__);
@@ -1195,7 +1195,7 @@ static int msm_pm_power_collapse
 			vfp_reinit();
 #endif
 		cpu_init();
-		msm_fiq_exit_sleep();
+		//msm_fiq_exit_sleep();
 		local_fiq_enable();
 	}
 
@@ -1703,9 +1703,6 @@ static int msm_pm_enter(suspend_state_t state)
 
 	time = msm_timer_get_sclk_time(&period);
 #endif
-	if (board_mfg_mode() == 4) /*power test mode*/
-		gpio_set_diag_gpio_table(
-			(unsigned long *)board_get_mfg_sleep_gpio_table());
 
 	MSM_PM_DPRINTK(MSM_PM_DEBUG_SUSPEND, KERN_INFO,
 		"%s(): sleep limit %u\n", __func__, sleep_limit);
@@ -1832,14 +1829,6 @@ static struct platform_suspend_ops msm_pm_ops = {
 
 static uint32_t restart_reason = RESTART_REASON_RAMDUMP;
 
-static void msm_pm_power_off(void)
-{
-	/* msm_rpcrouter_close(); */
-	msm_proc_comm(PCOM_POWER_DOWN, 0, 0);
-	for (;;)
-		;
-}
-
 static bool console_flushed;
 
 void msm_pm_flush_console(void)
@@ -1925,23 +1914,60 @@ static void bravo_save_reset_reason(void)
 }
 #endif
 
+static void msm_pm_power_off(void)
+{
+#if !defined(CONFIG_ARCH_MSM7X30) && !defined(CONFIG_ARCH_MSM7X27) && !defined(CONFIG_ARCH_QSD8X50)
+	msm_rpcrouter_close();
+#endif
+
+#ifdef CONFIG_HTC_OFFMODE_ALARM
+	set_offmode_alarm();
+	printk(KERN_INFO "msm_pm_power_off:wakeup after %d\r\n", msm_wakeup_after);
+	if (msm_wakeup_after)
+		msm_proc_comm(PCOM_SET_RTC_ALARM, &msm_wakeup_after, 0);
+#endif
+	msm_proc_comm(PCOM_POWER_DOWN, 0, 0);
+	for (;;)
+		;
+}
+
+#if defined(CONFIG_MACH_HTCLEO)
+static void htcleo_save_reset_reason(void)
+{
+	/* save restart_reason to be accesible in bootloader @ ramconsole - 0x1000*/
+	uint32_t *bootloader_reset_reason = ioremap(0x2FFB0000, PAGE_SIZE);
+
+	if (bootloader_reset_reason != NULL)
+	{
+		printk(KERN_INFO "msm_restart saving reason %x @ 0x2FFB0000 \n", restart_reason);
+
+		bootloader_reset_reason[0] = restart_reason;
+		bootloader_reset_reason[1] = restart_reason ^ 0x004b4c63; //XOR with cLK signature so we know is not trash
+	}
+}
+#endif
+
 static void msm_pm_restart(char str, const char *cmd)
 {
 	pr_info("%s: restart_reason 0x%x, cmd %s\n", __func__, restart_reason, (cmd) ? cmd : "NULL");
-	msm_pm_flush_console();
-	dprint_int_ctrl_regs();
-	//if (in_panic)
-	//	smd_ch(2);
-	/* msm_rpcrouter_close(); */
-	if (restart_reason == RESTART_REASON_RIL_FATAL) {
-	//	smd_ch(0);
-		show_state_filter(TASK_UNINTERRUPTIBLE);
+
+#if defined(CONFIG_MACH_HTCLEO)
+	htcleo_save_reset_reason();
+#endif
+#if defined(CONFIG_ARCH_QSD8X50)
+	bravo_save_reset_reason();
+#endif
+
+	/* always reboot device through proc comm */
+	if (restart_reason == RESTART_REASON_RIL_FATAL)
 		msm_proc_comm(PCOM_RESET_CHIP_IMM, &restart_reason, 0);
-	} else
+	else
 		msm_proc_comm(PCOM_RESET_CHIP, &restart_reason, 0);
 
 	/* In case Radio is dead, reset device after notify Radio 10 seconds */
 	mdelay(10000);
+	
+	msm_pm_flush_console();
 
 	/* hard reboot if possible */
 	if (msm_hw_reset_hook) {
