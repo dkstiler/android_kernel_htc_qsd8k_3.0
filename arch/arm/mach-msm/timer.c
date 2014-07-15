@@ -1053,11 +1053,11 @@ static void __init msm_timer_init(void)
 	struct msm_clock *dgt = &msm_clocks[MSM_CLOCK_DGT];
 	struct msm_clock *gpt = &msm_clocks[MSM_CLOCK_GPT];
 
-#ifdef CONFIG_MACH_HTCLEO
+#ifdef CONFIG_MACH_BRAVO /* Try HTCLEO fix on bravo*/
 	printk("$$$ msm_timer_init $$$\n");
-	printk(" 1DIV = %08X\n", readl(MSM_GPT_BASE + 0x20));
-	writel(3, MSM_GPT_BASE + 0x20);
-	printk(" 2DIV = %08X\n", readl(MSM_GPT_BASE + 0x20));
+	printk(" 1DIV = %08X\n", readl(MSM_CSR_BASE + 0x20));
+	writel(3, MSM_TMR_BASE + 0x20);
+	printk(" 2DIV = %08X\n", readl(MSM_CSR_BASE + 0x20));
 #endif
 
 	if (cpu_is_msm7x01() || cpu_is_msm7x25() || cpu_is_msm7x27() ||
