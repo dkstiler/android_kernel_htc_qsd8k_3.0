@@ -30,11 +30,8 @@
 		printk(KERN_ERR "[VIB][ERR]" fmt, ##__VA_ARGS__)
 
 #define PM_LIBPROG      0x30000061
-#ifdef  CONFIG_RPC_VER_60001
-#define PM_LIBVERS	0x60001
-#else
 #define PM_LIBVERS	0x30001
-#endif
+
 #define VIB_MAX_LEVEL_mV	3100
 #define VIB_MIN_LEVEL_mV	1200
 #define PMIC_VIBRATOR_LEVEL (3000)
