@@ -31,6 +31,7 @@
 #include <asm/mach/flash.h>
 
 #include <asm/mach/mmc.h>
+#include <mach/usb_gadget_fserial.h>
 #include <mach/msm_hsusb.h>
 #include <mach/usbdiag.h>
 #include <mach/rpc_hsusb.h>
