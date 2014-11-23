@@ -440,6 +440,7 @@ static struct akm8973_platform_data compass_platform_data = {
 	.intr = BRAVO_GPIO_COMPASS_INT_N,
 };
 
+#ifdef CONFIG_REGULATOR_TPS65023
 static struct regulator_consumer_supply tps65023_dcdc1_supplies[] = {
 	{
 		.supply = "acpu_vcore",
@@ -487,6 +488,7 @@ static struct regulator_init_data tps65023_data[5] = {
 		},
 	},
 };
+#endif
 
 static void ds2482_set_slp_n(unsigned n)
 {
@@ -556,10 +558,12 @@ static struct i2c_board_info base_i2c_devices[] = {
 	{
 		I2C_BOARD_INFO("s5k3e2fx", 0x20 >> 1),
 	},
+#ifdef CONFIG_REGULATOR_TPS65023
 	{
 		I2C_BOARD_INFO("tps65023", 0x48),
 		.platform_data = tps65023_data,
 	},
+#endif
 };
 
 static struct i2c_board_info rev_CX_i2c_devices[] = {
