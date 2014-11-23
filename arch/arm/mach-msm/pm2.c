@@ -1412,7 +1412,7 @@ static int msm_pm_power_collapse_standalone(bool from_idle)
 		vfp_reinit();
 #endif
 		cpu_init();
-		msm_fiq_exit_sleep();
+		//msm_fiq_exit_sleep();
 		local_fiq_enable();
 	}
 
