@@ -89,11 +89,19 @@ struct smd_config {
 
 static struct smd_config smd_configs[] = {
 	{0, "DS", NULL, SMD_APPS_MODEM},
+#ifdef CONFIG_MACH_BRAVO
+	{1, "DATA1", NULL, SMD_APPS_MODEM},
+#else
 	{1, "APPS_FM", NULL, SMD_APPS_WCNSS},
+#endif
 	{2, "APPS_RIVA_BT_ACL", NULL, SMD_APPS_WCNSS},
 	{3, "APPS_RIVA_BT_CMD", NULL, SMD_APPS_WCNSS},
 	{4, "MBALBRIDGE", NULL, SMD_APPS_MODEM},
+#ifdef CONFIG_MACH_BRAVO
+	{7, "APPS_FM", NULL, SMD_APPS_WCNSS},
+#else
 	{7, "DATA1", NULL, SMD_APPS_MODEM},
+#endif	
 	{11, "DATA11", NULL, SMD_APPS_MODEM},
 	{21, "DATA21", NULL, SMD_APPS_MODEM},
 	{27, "GPSNMEA", NULL, SMD_APPS_MODEM},
