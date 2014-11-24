@@ -278,8 +278,6 @@ show_one(ignore_nice_load, ignore_nice);
 show_one(boostpulse, boosted);
 show_one(boostfreq, boostfreq);
 show_one(powersave_bias, powersave_bias);
-show_one(boostpulse, boosted);
-show_one(boostfreq, boostfreq);
 
 static ssize_t store_boosttime(struct kobject *kobj, struct attribute *attr,
 				const char *buf, size_t count)
@@ -336,18 +334,6 @@ static ssize_t store_sampling_rate(struct kobject *a, struct attribute *b,
 	if (ret != 1)
 		return -EINVAL;
 	dbs_tuners_ins.boostfreq = input;
-	return count;
-}
-
-static ssize_t store_sampling_rate(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-	update_sampling_rate(input);
 	return count;
 }
 
