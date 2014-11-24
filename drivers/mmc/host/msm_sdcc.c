@@ -138,6 +138,7 @@ static inline void msmsdcc_sync_reg_wr(struct msmsdcc_host *host);
 static inline void msmsdcc_delay(struct msmsdcc_host *host);
 static void msmsdcc_dump_sdcc_state(struct msmsdcc_host *host);
 static int msmsdcc_vreg_reset(struct msmsdcc_host *host);
+static void msmsdcc_sg_start(struct msmsdcc_host *host);
 
 static inline unsigned short msmsdcc_get_nr_sg(struct msmsdcc_host *host)
 {
